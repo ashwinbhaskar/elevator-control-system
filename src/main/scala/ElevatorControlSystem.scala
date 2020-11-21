@@ -1,8 +1,9 @@
 import model._
 import adt._
+import types._
 
 trait ElevatorControlSystem:
-    def status: Seq[ElevatorStatus]
-    def request(pickUp: PickupRequest): Unit | Error
-    def request(drop: DropRequest): Unit | Error
+    def status: Map[Elevator, ElevatorStatus]
+    def request(pickUp: PickupRequest): Elevator
+    def request(drop: DropRequest): Unit
     def step: Unit
