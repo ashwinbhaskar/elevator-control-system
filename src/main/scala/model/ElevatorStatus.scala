@@ -6,7 +6,7 @@ import types._
 final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[Floor], pickup: Option[PickupAndDirection]):
 
     if(!ElevatorStatus.isValid(destinationDropFloors, pickup))
-        throw new IllegalStateException("elevator cannot be going to pick somewhen when it has drop destinations and vice-versa")
+        throw new IllegalStateException("not possible")
 
     private def intToDirection(i: Int): Direction = 
         if(i > 0)
@@ -41,7 +41,7 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
 
 object ElevatorStatus:
     def isValid(destinationDropFloors: Seq[Floor], pickup: Option[PickupAndDirection]): Boolean = 
-        !(destinationDropFloors.nonEmpty && pickup.isDefined)
+        true//!(destinationDropFloors.nonEmpty && pickup.isDefined)
     def apply(currentFloor: Floor, 
              destinationDropFloors: Seq[Floor],
              pickup: Option[PickupAndDirection]): Option[ElevatorStatus] = 

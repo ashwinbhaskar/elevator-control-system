@@ -1,5 +1,6 @@
 import model._
 import adt._
+import adt.Direction._
 import scala.util.chaining._
 import types._
 
@@ -9,16 +10,19 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
     override def status: Map[Elevator, ElevatorStatus] = state
     /*
     1. Find an elevator that is stationary
-    2. If not found, find the elevator that is going in the direction that the user wants to go
+    2. If not found, find nearest elevator which is going for a pickup and whose direction after pick up 
+       is in the same direction as the request
+    3. If not found, find the elevator that is going in the direction that the user wants to go
        and which is not in a pick up mode. No optimisation for an elevator that is going to pickup someone
-    3. If not found, then assign the elevator whose last stop is nearest to this one
+    4. If not found, then assign the elevator whose last stop is nearest to this one
     */
-    override def request(pickUp: PickupRequest): Elevator = 
+    override def request(pickup: PickupRequest): Elevator = 
         val (elevator, elevatorStatus): ElevatorAndStatus = 
-            pickUp
+            pickup
                 .pipe(reqStationaryElevator)
-                .pipe(result => ifNone(result, pickUp, reqNearestElevatorInDirection))
-                .fold(reqNearestLastStopElevator(pickUp))(identity)
+                .pipe(result => ifNone(result, pickup, reqNearestElevatorWithPickupDirection))
+                .pipe(result => ifNone(result, pickup, reqNearestElevatorInDirection))
+                .fold(reqNearestLastStopElevator(pickup))(identity)
         state += (elevator -> elevatorStatus)
         elevator
 
@@ -34,15 +38,23 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
             .find((_, es) => es.isStationary)
             .map((e, es) => e -> es.copy(pickup = Some(r.floor -> r.direction)))
 
+    private def reqNearestElevatorWithPickupDirection(r: PickupRequest): Option[ElevatorAndStatus] = 
+        def canPickup(elevatorStatus: ElevatorStatus): Boolean = 
+            elevatorStatus match
+                case ElevatorStatus(_, _, Some(pickupFloor -> dir)) if dir == r.direction => 
+                        if(dir == DOWN)
+                            r.floor < pickupFloor
+                        else
+                            r.floor > pickupFloor
+                case _ => false
+        state
+            .find((_, es) => canPickup(es))
+            .map((e, es) => e -> es.addDestination(r.floor))
+
     private def reqNearestElevatorInDirection(r: PickupRequest): Option[ElevatorAndStatus] = ???
+        // state
+        //     .filterNot((_, es) => es.isStationary)
+        //     .filter((_, es) => es.direction == r.direction)
+
     
     private def reqNearestLastStopElevator(r: PickupRequest): ElevatorAndStatus = ???
-
-    private def canPickup(pickup: PickupRequest, elevatorGoalFloor: Floor, elevatorDirection: Direction): Boolean = ???
-        // pickup.direction == elevatorDirection &&  {
-            // val pf = pickup.floor
-            // if(elevatorDirection == Direction.UP)
-                // elevatorGoalFloor > pf
-            // else
-                // elevatorGoalFloor > pf
-        // }
