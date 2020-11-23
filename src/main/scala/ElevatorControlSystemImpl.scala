@@ -55,7 +55,7 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
         def canPickup(elevatorStatus: ElevatorStatus): Boolean = 
             elevatorStatus match
                 case ElevatorStatus(_, _, Some(pickupFloor -> dir)) if dir == r.direction => 
-                        if(dir == DOWN)
+                        if dir == DOWN then
                             r.floor < pickupFloor
                         else
                             r.floor > pickupFloor
@@ -64,11 +64,17 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
             .find((_, es) => canPickup(es))
             .map((e, es) => e -> es.addDestination(r.floor))
 
-    private def reqElevatorInDirection(r: PickupRequest): Option[ElevatorAndStatus] = ???
-        // def canPickup(es: ElevatorStatus): Boolean = 
-        //     es match
-        //         case ElevatorStatus(currentFloor, )
-        // state
-        //     .find  
+    private def reqElevatorInDirection(r: PickupRequest): Option[ElevatorAndStatus] = 
+        def canPickup(es: ElevatorStatus): Boolean = 
+            es match
+                case e@ElevatorStatus(currentFloor, Seq(s, _*), None) if e.direction.get == r.direction =>
+                    if r.direction == DOWN then
+                        currentFloor > r.floor
+                    else
+                        currentFloor < r.floor
+                case _ => false                    
+        state
+            .find((_, es) => canPickup(es))
+            .map((e, es) => e -> es.addDestination(r.floor))
     
     private def reqLastStopElevator(r: PickupRequest): ElevatorAndStatus = ???

@@ -46,10 +46,26 @@ class ElevatorControlSystemImplTest {
     
     val pickupRequest1 = f(3) -> DOWN
     val elevator = controlSystem.request(pickupRequest1)
-    assertEquals(elevator, e(3))
+    assertEquals(e(3), elevator)
 
     val expectedElevator3Status = e(3) -> es(f(1), Seq(f(3)), Some(f(4) -> DOWN))
-    assertEquals(controlSystem.status, initialState + expectedElevator3Status)
+    assertEquals(initialState + expectedElevator3Status, controlSystem.status)
+  }
+
+  @Test def elevatorInDirectionTest: Unit = {
+    val e1AndStatus = e(1) -> es(f(3), Seq(f(5),f(6)), None)
+    val e2AndStatus = e(2) -> es(f(5), Seq.empty[Floor], Some(f(2) -> DOWN))
+    val e3AndStatus = e(3) -> es(f(1), Seq(), Some(f(4) -> DOWN))
+
+    val initialState = Map(e1AndStatus, e2AndStatus, e3AndStatus)
+    val controlSystem = new ElevatorControlSystemImpl(initialState)
+
+    val pickupRequest1 = f(4) -> UP
+    val elevator = controlSystem.request(pickupRequest1)
+    assertEquals(e(1), elevator)
+
+    val expectedElevatorStatus = e(1) -> es(f(3), Seq(f(4), f(5), f(6)), None)
+    assertEquals(initialState + expectedElevatorStatus, controlSystem.status)
   }
 
   @Test def invalidDropRequestDirectionTest: Unit = {

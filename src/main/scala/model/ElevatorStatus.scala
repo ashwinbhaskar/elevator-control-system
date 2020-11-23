@@ -18,10 +18,10 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
             None
         
     private def stepFloor(direction: Direction): Floor = 
-        if direction == UP then
-            currentFloor + 1
-        else
-            currentFloor - 1
+        direction match
+            case UP => currentFloor + 1
+            case DOWN => currentFloor - 1
+        
 
 
     private def destinationDropFloorsDirection: Option[Direction] = 
@@ -30,8 +30,7 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
             .flatMap(f => deriveDirection(currentFloor, f))
     
     private def pickupAndThenGoToDirection: Option[Direction] = 
-        pickup
-            .map((_, direction) => direction)
+        pickup.map((_, direction) => direction)
 
     def direction: Option[Direction] = destinationDropFloorsDirection.orElse(pickupAndThenGoToDirection)
     
@@ -44,8 +43,7 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
             fs.sortDesc
 
     private def directionBeforePickup: Option[Direction] = 
-        pickup
-            .flatMap((f, _) => deriveDirection(currentFloor, f))
+        pickup.flatMap((f, _) => deriveDirection(currentFloor, f))
 
     def addDestination(floor: Floor): ElevatorStatus = 
         direction
