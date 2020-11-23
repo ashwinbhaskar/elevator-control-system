@@ -9,11 +9,13 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
     if(!ElevatorStatus.isValid(destinationDropFloors, pickup))
         throw new IllegalStateException("not possible")
 
-    private def intToDirection(i: Int): Direction = 
-        if i > 0 then
-            Direction.UP
+    private def deriveDirection(from: Floor, to: Floor): Option[Direction] =
+        if to - from > 0 then
+            Some(UP)
+        else if to - from < 0 then
+            Some(DOWN)
         else
-            Direction.DOWN
+            None
         
     private def stepFloor(direction: Direction): Floor = 
         if direction == UP then
@@ -25,7 +27,7 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
     private def destinationDropFloorsDirection: Option[Direction] = 
         destinationDropFloors
             .headOption
-            .map(f => intToDirection(f - currentFloor))
+            .flatMap(f => deriveDirection(currentFloor, f))
     
     private def pickupAndThenGoToDirection: Option[Direction] = 
         pickup
@@ -40,6 +42,10 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
             fs.sortAsc
         else
             fs.sortDesc
+
+    private def directionBeforePickup: Option[Direction] = 
+        pickup
+            .flatMap((f, _) => deriveDirection(currentFloor, f))
 
     def addDestination(floor: Floor): ElevatorStatus = 
         direction
@@ -56,7 +62,8 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
     def step: ElevatorStatus = 
         if pickup.isDefined then
             val (pickupFloor, _) = pickup.get
-            val updatedCurrentFloor = stepFloor(direction.get) //confident .get as pick up being defined means direction exists
+            val d = directionBeforePickup.get                  //confident .get as pick up being defined means direction exists
+            val updatedCurrentFloor = stepFloor(d) 
             if pickupFloor == updatedCurrentFloor then
                 copy(currentFloor = updatedCurrentFloor, pickup = None)
             else

@@ -20,8 +20,8 @@ extension (f: Floor):
     @infix def <(o: Floor): Boolean = f < o
     @infix def ==(o: Floor): Boolean = f == o
     @infix def >(o: Floor): Boolean = f > o
-    @infix def -(o: Floor): Floor = f - 0
-    @infix def +(o: Floor): Floor = f + 0
+    @infix def -(o: Floor): Floor = f - o
+    @infix def +(o: Floor): Floor = f + o
 
 extension (fs: Seq[Floor]):
     def sortAsc: Seq[Floor] = fs.sorted

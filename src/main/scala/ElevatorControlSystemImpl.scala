@@ -40,7 +40,10 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
             state += (drop.elevator -> elevatorStatus.addDestination(drop.floor))
 
 
-    override def step: Unit = ???
+    override def step: Unit = 
+        state
+            .values
+            .foreach(_.step)
 
     private def ifNone(v: Option[ElevatorAndStatus], r: PickupRequest, f: PickupRequest => Option[ElevatorAndStatus]): Option[ElevatorAndStatus] = 
         v.fold(f(r))(Some.apply)
