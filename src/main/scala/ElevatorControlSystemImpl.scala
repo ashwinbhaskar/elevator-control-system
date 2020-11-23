@@ -1,6 +1,7 @@
 import model._
 import adt._
 import adt.Direction._
+import adt.Error._
 import scala.util.chaining._
 import types._
 
@@ -26,7 +27,18 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
         state += (elevator -> elevatorStatus)
         elevator
 
-    override def request(drop: DropRequest): Unit = ???
+    override def request(drop: DropRequest): Error | Unit = 
+        val elevatorStatus = state(drop.elevator)
+        val dropDirection = 
+            if(elevatorStatus.currentFloor > drop.floor)
+                DOWN
+            else
+                UP
+        if(elevatorStatus.direction.get != dropDirection) //a confident .get as you cannot be inside a stationary elevator
+            InvalidDropDirection
+        else
+            state += (drop.elevator -> elevatorStatus.addDestination(drop.floor))
+
 
     override def step: Unit = ???
 
@@ -52,9 +64,10 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
             .map((e, es) => e -> es.addDestination(r.floor))
 
     private def reqNearestElevatorInDirection(r: PickupRequest): Option[ElevatorAndStatus] = ???
+        // def canPickup(es: ElevatorStatus): Boolean = 
+        //     es match
+        //         case ElevatorStatus(currentFloor, )
         // state
-        //     .filterNot((_, es) => es.isStationary)
-        //     .filter((_, es) => es.direction == r.direction)
-
+        //     .find  
     
     private def reqNearestLastStopElevator(r: PickupRequest): ElevatorAndStatus = ???

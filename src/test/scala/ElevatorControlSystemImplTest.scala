@@ -4,6 +4,7 @@ import org.junit.Assert._
 import adt._
 import model._
 import adt.Direction._
+import adt.Error._
 import types._
 
 class ElevatorControlSystemImplTest {
@@ -49,6 +50,36 @@ class ElevatorControlSystemImplTest {
 
     val expectedElevator3Status = e(3) -> es(f(1), Seq(f(3)), Some(f(4) -> DOWN))
     assertEquals(controlSystem.status, initialState + expectedElevator3Status)
+  }
+
+  @Test def invalidDropRequestDirectionTest: Unit = {
+    val e1AndStatus = e(1) -> es(f(4), Seq(f(5),f(6)), None)
+    val e2AndStatus = e(2) -> es(f(5), Seq.empty[Floor], Some(f(2) -> DOWN))
+    val e3AndStatus = e(3) -> es(f(1), Seq(), Some(f(4) -> DOWN))
+
+    val initialState = Map(e1AndStatus, e2AndStatus, e3AndStatus)
+    val controlSystem = new ElevatorControlSystemImpl(initialState)
+
+    val dropRequest = DropRequest(f(1), e(1))
+    val result = controlSystem.request(dropRequest)
+    assertEquals(InvalidDropDirection, result)
+    assertEquals(initialState, controlSystem.status)
+  }
+
+  @Test def dropRequestTest: Unit = {
+    val e1AndStatus = e(1) -> es(f(0), Seq(f(5),f(6)), None)
+    val e2AndStatus = e(2) -> es(f(5), Seq.empty[Floor], Some(f(2) -> DOWN))
+    val e3AndStatus = e(3) -> es(f(1), Seq(), Some(f(4) -> DOWN))
+
+    val initialState = Map(e1AndStatus, e2AndStatus, e3AndStatus)
+    val controlSystem = new ElevatorControlSystemImpl(initialState)
+
+    val dropRequest = DropRequest(f(8), e(1))
+    assertEquals(controlSystem.request(dropRequest), ())
+
+    val status = controlSystem.status
+    val expectedElevator1AndStatus = e(1) -> e1AndStatus._2.addDestination(f(8))
+    assertEquals(Map(expectedElevator1AndStatus, e2AndStatus, e3AndStatus), status)
   }
 
   
