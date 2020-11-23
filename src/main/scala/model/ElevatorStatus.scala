@@ -2,6 +2,7 @@ package model
 
 import adt._
 import types._
+import adt.Direction._
 
 final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[Floor], pickup: Option[PickupAndDirection]):
 
@@ -9,10 +10,17 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
         throw new IllegalStateException("not possible")
 
     private def intToDirection(i: Int): Direction = 
-        if(i > 0)
+        if i > 0 then
             Direction.UP
         else
             Direction.DOWN
+        
+    private def stepFloor(direction: Direction): Floor = 
+        if direction == UP then
+            currentFloor + 1
+        else
+            currentFloor - 1
+
 
     private def destinationDropFloorsDirection: Option[Direction] = 
         destinationDropFloors
@@ -38,6 +46,27 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
             .map(d => sort(destinationDropFloors :+ floor, d))
             .map(ddf => copy(destinationDropFloors = ddf))
             .getOrElse(copy(destinationDropFloors = Seq(floor)))
+    
+    def removeDestination(floor: Floor): ElevatorStatus = 
+        if destinationDropFloors.isEmpty then
+            this
+        else
+            copy(destinationDropFloors = destinationDropFloors.filterNot(_ == floor))
+    
+    def step: ElevatorStatus = 
+        if pickup.isDefined then
+            val (pickupFloor, _) = pickup.get
+            val updatedCurrentFloor = stepFloor(direction.get) //confident .get as pick up being defined means direction exists
+            if pickupFloor == updatedCurrentFloor then
+                copy(currentFloor = updatedCurrentFloor, pickup = None)
+            else
+                copy(currentFloor = updatedCurrentFloor)
+        else if destinationDropFloors.nonEmpty then
+            val updatedCurrentFloor = stepFloor(direction.get) //confident .get as pick up being defined means direction exists
+            removeDestination(updatedCurrentFloor).copy(currentFloor = updatedCurrentFloor)
+        else
+            this
+
 
 object ElevatorStatus:
     def isValid(destinationDropFloors: Seq[Floor], pickup: Option[PickupAndDirection]): Boolean = 
