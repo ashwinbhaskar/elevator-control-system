@@ -22,8 +22,6 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
             case UP => currentFloor + 1
             case DOWN => currentFloor - 1
         
-
-
     private def destinationDropFloorsDirection: Option[Direction] = 
         destinationDropFloors
             .headOption
@@ -75,7 +73,11 @@ final case class ElevatorStatus(currentFloor: Floor, destinationDropFloors: Seq[
 
 object ElevatorStatus:
     def isValid(destinationDropFloors: Seq[Floor], pickup: Option[PickupAndDirection]): Boolean = 
-        true//!(destinationDropFloors.nonEmpty && pickup.isDefined)
+        destinationDropFloors -> pickup match
+            case Seq(a, _*) -> Some(pickupFloor -> DOWN) => pickupFloor > a
+            case Seq(a, _*) -> Some(pickupFloor -> UP) => pickupFloor < a
+            case _ => true
+
     def apply(currentFloor: Floor, 
              destinationDropFloors: Seq[Floor],
              pickup: Option[PickupAndDirection]): Option[ElevatorStatus] = 

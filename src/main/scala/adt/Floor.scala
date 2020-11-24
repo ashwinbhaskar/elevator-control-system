@@ -17,11 +17,11 @@ object Floor:
             throw new IllegalArgumentException("floor should be between 0 and 10")
 
 extension (f: Floor):
-    @infix def <(o: Floor): Boolean = f < o
-    @infix def ==(o: Floor): Boolean = f == o
-    @infix def >(o: Floor): Boolean = f > o
-    @infix def -(o: Floor): Floor = f - o
-    @infix def +(o: Floor): Floor = f + o
+    def <(o: Floor): Boolean = f < o
+    def ==(o: Floor): Boolean = f == o
+    def >(o: Floor): Boolean = f > o
+    def -(o: Floor): Floor = f - o
+    def +(o: Floor): Floor = f + o
 
 extension (fs: Seq[Floor]):
     def sortAsc: Seq[Floor] = fs.sorted

@@ -15,17 +15,19 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
        is in the same direction as the request
     3. If not found, find the elevator that is going in the direction that the user wants to go
        and which is not in a pick up mode. No optimisation for an elevator that is going to pickup someone
-    4. If not found, then assign the elevator whose last stop is nearest to the pick up one
     */
-    override def request(pickup: PickupRequest): Elevator = 
-        val (elevator, elevatorStatus): ElevatorAndStatus = 
+    override def request(pickup: PickupRequest): Elevator | Error = 
+        val result: ElevatorAndStatus | Error = 
             pickup
                 .pipe(reqStationaryElevator)
                 .pipe(result => ifNone(result, pickup, reqElevatorWithPickupDirection))
                 .pipe(result => ifNone(result, pickup, reqElevatorInDirection))
-                .fold(reqLastStopElevator(pickup))(identity)
-        state += (elevator -> elevatorStatus)
-        elevator
+                .fold(NoElevatorAvailable)(identity)
+        result match
+            case elevator -> elevatorStatus => 
+                state += (elevator -> elevatorStatus)
+                elevator
+            case error: Error => error
 
     override def request(drop: DropRequest): Error | Unit = 
         val elevatorStatus = state(drop.elevator)
@@ -76,5 +78,3 @@ class ElevatorControlSystemImpl(initialState: Map[Elevator, ElevatorStatus]) ext
         state
             .find((_, es) => canPickup(es))
             .map((e, es) => e -> es.addDestination(r.floor))
-    
-    private def reqLastStopElevator(r: PickupRequest): ElevatorAndStatus = ???
